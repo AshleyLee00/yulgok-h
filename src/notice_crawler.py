@@ -15,12 +15,18 @@ import xml.etree.ElementTree as ET
 from datetime import datetime
 from urllib.parse import urljoin
 
+# 로그 파일 경로 설정
+log_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data')
+os.makedirs(log_dir, exist_ok=True)
+log_file = os.path.join(log_dir, 'notice_crawler.log')
+
 # 로깅 설정
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
-    filename='crawler.log',
-    filemode='a'
+    filename=log_file,
+    filemode='w',
+    encoding='utf-8'
 )
 
 def crawl_school_notices(url, site_name=None):
@@ -189,9 +195,9 @@ def crawl_school_notices(url, site_name=None):
     return result
 
 if __name__ == "__main__":
-    # 율곡중학교 RSS URL
-    test_url = "http://yulgok-m.goepj.kr/yulgok-m/na/ntt/selectRssFeed.do?mi=10151&bbsId=6774"
-    result = crawl_school_notices(test_url, "율곡중학교")
+    # 율곡고등학교 RSS URL
+    test_url = "http://yulgok-h.goepj.kr/yulgok-h/na/ntt/selectRssFeed.do?mi=3812&bbsId=3050"
+    result = crawl_school_notices(test_url, "율곡고등학교")
     
     # 모든 공지사항 출력
     print("\n공지사항 목록:")

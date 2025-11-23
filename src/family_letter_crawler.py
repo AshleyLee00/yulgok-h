@@ -196,9 +196,9 @@ def crawl_school_letters(url, site_name=None):
     return result
 
 if __name__ == "__main__":
-    # 율곡중학교 가정통신문 RSS URL
-    test_url = "https://yulgok-m.goepj.kr/yulgok-m/na/ntt/selectRssFeed.do?mi=10153&bbsId=6776"
-    result = crawl_school_letters(test_url, "율곡중학교")
+    # 율곡고등학교 가정통신문 RSS URL
+    test_url = "http://yulgok-h.goepj.kr/yulgok-h/na/ntt/selectRssFeed.do?mi=3813&bbsId=3051"
+    result = crawl_school_letters(test_url, "율곡고등학교")
     
     # 모든 가정통신문 출력
     print("\n가정통신문 목록:")

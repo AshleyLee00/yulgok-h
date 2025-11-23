@@ -50,7 +50,7 @@ def generate_meal_html(meals, school_name):
         }
 
         body {
-            background: #008b8b;
+            background: #007a9f;
             font-family: 'SeoulAlrim', sans-serif;
             margin: 0; 
             padding: 0;
@@ -63,9 +63,9 @@ def generate_meal_html(meals, school_name):
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: linear-gradient(90deg, #008b8b, #006666);
+            background: linear-gradient(90deg, #007a9f, #005f7d);
             padding: 30px 90px;
-            box-shadow: 0 8px 32px rgba(0, 139, 139, 0.18);
+            box-shadow: 0 8px 32px rgba(0, 122, 159, 0.18);
             flex-shrink: 0;
         }
 
@@ -495,7 +495,7 @@ def generate_meal_html(meals, school_name):
             max-width: 2000px;
             background: #FFFFFF;
             border-radius: 20px;
-            box-shadow: 0 8px 40px rgba(0, 139, 139, 0.18);
+            box-shadow: 0 8px 40px rgba(0, 122, 159, 0.18);
             overflow-x: visible;
             max-height: none;
         }
@@ -543,6 +543,13 @@ def generate_meal_html(meals, school_name):
             display: block;
             margin-bottom: 8px;
             text-shadow: 0 0 1px rgba(0, 0, 0, 0.08);
+        }
+
+        .calorie-info {
+            font-size: 1.8rem;
+            color: #0a7fa3;
+            margin-top: 10px;
+            font-weight: 600;
         }
 
         .allergen {
@@ -623,7 +630,7 @@ def generate_meal_html(meals, school_name):
             padding: 15px;
             background: #FFFFFF;
             border-radius: 15px;
-            box-shadow: 0 4px 20px rgba(0, 139, 139, 0.1);
+            box-shadow: 0 4px 20px rgba(0, 122, 159, 0.1);
         }
     """
 
@@ -996,21 +1003,27 @@ def generate_meal_html(meals, school_name):
         formatted_date = f"{date[4:6]}월 {date[6:8]}일 ({['월', '화', '수', '목', '금', '토', '일'][datetime.strptime(date, '%Y%m%d').weekday()]})"
         menu_items = meal['DDISH_NM'].split('<br/>')
         menu_html = ""
+        allergens = set()
         
         for item in menu_items:
             # 알레르기 정보 추출
-            allergens = []
             item_text = item
             for i in range(1, 20):
                 if f"({i})" in item:
-                    allergens.append(str(i))
+                    allergens.add(str(i))
                     item_text = item_text.replace(f"({i})", "")
             
             menu_html += f'<span>{item_text}</span>'
         
+        calorie_info = meal.get('CAL_INFO', '').strip()
+        calorie_html = ""
+        if calorie_info:
+            calorie_html = f'<div class="calorie-info">열량: {calorie_info}</div>'
+        
         allergen_text = ""
         if allergens:
-            allergen_text = f'<div class="allergen">알레르기 유발 식품: {", ".join(allergens)}</div>'
+            allergen_list = sorted(allergens, key=lambda x: int(x))
+            allergen_text = f'<div class="allergen">알레르기 유발 식품: {", ".join(allergen_list)}</div>'
         
         meal_cards += f"""
             <div class="meal-day-container">
@@ -1019,6 +1032,7 @@ def generate_meal_html(meals, school_name):
                     <div class="meal-menu">
                         {menu_html}
                     </div>
+                    {calorie_html}
                     {allergen_text}
                 </div>
             </div>
@@ -1064,8 +1078,8 @@ def generate_meal_html(meals, school_name):
 def main():
     # API 설정
     API_KEY = os.getenv("NEIS_API_KEY", "dafe93db7c0d4c6eb8ba9a8f5aaee96b")  # 환경변수에서 가져오거나 기본값 사용
-    SCHOOL_CODE = "7681015"  # 율곡중학교
-    SCHOOL_NAME = "율곡중학교"
+    SCHOOL_CODE = "7530202"  # 율곡고등학교
+    SCHOOL_NAME = "율곡고등학교"
     
     # 날짜 설정
     today = datetime.now()

@@ -1,44 +1,64 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import requests
 from datetime import datetime, timedelta
 import calendar
 import os
-from dotenv import load_dotenv
+import json
 
-# .env 파일 로드
-load_dotenv()
+# 학교 정보
+SCHOOL_NAME = "율곡고등학교"
 
-# 학교 및 API 정보
-API_KEY = os.getenv("NEIS_API_KEY", "dafe93db7c0d4c6eb8ba9a8f5aaee96b")  # 환경변수에서 가져오거나 기본값 사용
-ATPT_OFCDC_SC_CODE = "J10"  # 경기도교육청
-SD_SCHUL_CODE = "7681015"   # 율곡중학교
-SCHOOL_NAME = "율곡중학교"
-
-# 학사일정 가져오기 함수
-def get_schedule_info(api_key, atpt_code, school_code, year, month):
-    base_url = "https://open.neis.go.kr/hub/SchoolSchedule"
-    start_date = f"{year}{str(month).zfill(2)}01"
-    last_day = calendar.monthrange(year, month)[1]
-    end_date = f"{year}{str(month).zfill(2)}{str(last_day).zfill(2)}"
-    params = {
-        "KEY": api_key,
-        "Type": "json",
-        "ATPT_OFCDC_SC_CODE": atpt_code,
-        "SD_SCHUL_CODE": school_code,
-        "AA_FROM_YMD": start_date,
-        "AA_TO_YMD": end_date,
-        "pIndex": 1,
-        "pSize": 100
-    }
+# 학사일정 가져오기 함수 (JSON 파일에서 읽기)
+def get_schedule_info(year, month):
+    # JSON 파일 경로 설정
+    parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    json_path = os.path.join(parent_dir, "schedule.json")
+    
     try:
-        response = requests.get(base_url, params=params)
-        data = response.json()
-        if 'SchoolSchedule' not in data:
+        # JSON 파일 읽기
+        with open(json_path, "r", encoding="utf-8") as f:
+            schedule_data = json.load(f)
+        
+        # 월 키 생성 (예: "11월", "12월", "01월")
+        month_key = f"{str(month).zfill(2)}월"
+        
+        # 해당 월의 일정 가져오기
+        if month_key not in schedule_data:
             return []
-        rows = data['SchoolSchedule'][1]['row']
-        return rows
+        
+        month_schedules = schedule_data[month_key]
+        
+        # JSON 형식을 코드에서 사용하는 형식으로 변환
+        # JSON: {"start": "2024-11-01", "end": "2024-11-01", "event": "토요휴업일"}
+        # 코드 형식: {"AA_YMD": "20241101", "EVENT_NM": "토요휴업일"}
+        converted_schedules = []
+        for item in month_schedules:
+            # 날짜 형식 변환: "2024-11-01" -> "20241101"
+            start_date = item['start'].replace("-", "")
+            event_name = item['event']
+            
+            # 시작일과 종료일이 다를 경우 처리 (현재는 동일한 날짜만 처리)
+            start_date_obj = datetime.strptime(item['start'], "%Y-%m-%d")
+            end_date_obj = datetime.strptime(item['end'], "%Y-%m-%d")
+            
+            # 시작일부터 종료일까지 모든 날짜에 일정 추가
+            current_date = start_date_obj
+            while current_date <= end_date_obj:
+                date_str = current_date.strftime("%Y%m%d")
+                converted_schedules.append({
+                    'AA_YMD': date_str,
+                    'EVENT_NM': event_name
+                })
+                current_date += timedelta(days=1)
+        
+        return converted_schedules
+    except FileNotFoundError:
+        print(f"학사일정 JSON 파일을 찾을 수 없습니다: {json_path}")
+        return []
+    except json.JSONDecodeError as e:
+        print(f"JSON 파일 파싱 실패: {str(e)}")
+        return []
     except Exception as e:
         print(f"학사일정 정보 가져오기 실패: {str(e)}")
         return []
@@ -192,7 +212,7 @@ def generate_schedule_html(schedules, school_name, year, month):
             font-style: normal;
         }
         body { 
-            background: #008b8b; 
+            background: #007a9f; 
             font-family: 'SeoulAlrim', sans-serif; 
             margin: 0; 
             padding: 0; 
@@ -203,9 +223,9 @@ def generate_schedule_html(schedules, school_name, year, month):
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: linear-gradient(90deg, #008b8b, #006666);
+            background: linear-gradient(90deg, #007a9f, #005f7d);
             padding: 30px 90px;
-            box-shadow: 0 8px 32px rgba(0, 139, 139, 0.18);
+            box-shadow: 0 8px 32px rgba(0, 122, 159, 0.18);
             flex-shrink: 0;
             min-height: 80px;
             box-sizing: border-box;
@@ -271,7 +291,7 @@ def generate_schedule_html(schedules, school_name, year, month):
         .main-content {
             background: #fff;
             border-radius: 20px;
-            box-shadow: 0 8px 40px rgba(0, 139, 139, 0.18);
+            box-shadow: 0 8px 40px rgba(0, 122, 159, 0.18);
             margin: 20px auto;
             padding: 20px 60px;
             max-width: 2000px;
@@ -285,7 +305,7 @@ def generate_schedule_html(schedules, school_name, year, month):
         }
         .calendar-section h2 {
             font-size: 3.5rem;
-            color: #008b8b;
+            color: #007a9f;
             margin-bottom: 15px;
             font-weight: 700;
             margin-top: 6px;
@@ -325,8 +345,8 @@ def generate_schedule_html(schedules, school_name, year, month):
         .table-calendar th {
             text-align: center;
             padding: 10px 4px;
-            background: #E0F7F7;
-            color: #008b8b;
+            background: #E0F4FA;
+            color: #007a9f;
             font-weight: 700;
             border: 1px solid #eee;
         }
@@ -343,8 +363,8 @@ def generate_schedule_html(schedules, school_name, year, month):
             transition: background 0.2s;
         }
         .event-circle {
-            background: #E0F7F7;
-            color: #008b8b;
+            background: #E0F4FA;
+            color: #007a9f;
         }
         .sunday {
             color: #e23a3a !important;
@@ -392,7 +412,7 @@ def generate_schedule_html(schedules, school_name, year, month):
         }
         .event-list-part h3 {
             font-size: 2rem;
-            color: #008b8b;
+            color: #007a9f;
             margin-bottom: 10px;
             font-weight: 700;
         }
@@ -407,7 +427,7 @@ def generate_schedule_html(schedules, school_name, year, month):
             text-align: left;
         }
         .event-list-table td:first-child {
-            color: #008b8b;
+            color: #007a9f;
             font-weight: 700;
             width: 120px;
             font-size: 2rem;
@@ -1231,7 +1251,7 @@ def generate_schedule_html(schedules, school_name, year, month):
         </header>
         <div class="main-content">
             <div class="calendar-section">
-                <h2 style="font-size:3.3rem; color:#008b8b; margin-bottom:10px;">{year}년 {month}월</h2>
+                <h2 style="font-size:3.3rem; color:#007a9f; margin-bottom:10px;">{year}년 {month}월</h2>
                 {calendar_html}
             </div>
             <div class="event-list-section">
@@ -1249,7 +1269,7 @@ def main():
     now = datetime.now()
     year = now.year
     month = now.month
-    schedules = get_schedule_info(API_KEY, ATPT_OFCDC_SC_CODE, SD_SCHUL_CODE, year, month)
+    schedules = get_schedule_info(year, month)
     html_content = generate_schedule_html(schedules, SCHOOL_NAME, year, month)
     parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     with open(os.path.join(parent_dir, "school_schedule.html"), "w", encoding="utf-8") as f:

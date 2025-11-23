@@ -26,7 +26,7 @@ def generate_html_base(title, items, school_name, item_type):
         }
 
         body {
-            background: #008b8b;
+            background: #007a9f;
             font-family: 'SeoulAlrim', sans-serif;
             margin: 0; 
             padding: 0;
@@ -39,7 +39,7 @@ def generate_html_base(title, items, school_name, item_type):
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: linear-gradient(90deg, #008b8b, #006666);
+            background: linear-gradient(90deg, #007a9f, #006666);
             padding: 30px 90px;
             box-shadow: 0 8px 32px rgba(0, 139, 139, 0.18);
             flex-shrink: 0;
@@ -475,8 +475,8 @@ def generate_html_base(title, items, school_name, item_type):
 
         async function fetchWeather() {
             const apiKey = '""" + os.getenv("OPENWEATHER_API_KEY", "") + """';
-            const lat = 35.9568;
-            const lon = 126.9689;
+            const lat = 37.7594;
+            const lon = 126.7729;
             const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`;
             
             try {
@@ -505,33 +505,35 @@ def generate_html_base(title, items, school_name, item_type):
             }
         }
 
-        // 계절별 이미지 슬라이드 기능
-        function getSeasonalImages() {
-            // 율곡중학교 이미지 경로
+        // 학교 이미지 슬라이드 기능
+        function getSchoolImages() {
+            // 율곡고등학교 이미지 경로
             return [
-                'images/율곡중학교.jpg'
+                'images/율곡고.png',
+                'images/율곡고2.jpg',
+                'images/율곡고-전경.png'
             ];
         }
 
         let currentImageIndex = 0;
-        let seasonalImages = [];
+        let schoolImages = [];
 
         function updateSchoolImage() {
             const imgElement = document.querySelector('.school-img');
             if (!imgElement) return;
 
-            // 현재 계절의 이미지 목록 가져오기
-            seasonalImages = getSeasonalImages();
+            // 학교 이미지 목록 가져오기
+            schoolImages = getSchoolImages();
             
             // 페이드 아웃 효과
             imgElement.classList.add('fade-out');
             
             setTimeout(() => {
                 // 이미지 변경
-                imgElement.src = seasonalImages[currentImageIndex];
+                imgElement.src = schoolImages[currentImageIndex];
                 
                 // 다음 이미지 인덱스로 이동
-                currentImageIndex = (currentImageIndex + 1) % seasonalImages.length;
+                currentImageIndex = (currentImageIndex + 1) % schoolImages.length;
                 
                 // 페이드 인 효과
                 imgElement.classList.remove('fade-out');
@@ -543,20 +545,20 @@ def generate_html_base(title, items, school_name, item_type):
         updateDateTime();
         loadInitialWeather();
         
-        // 페이지 로드 시 현재 계절에 맞는 초기 이미지 설정
+        // 페이지 로드 시 초기 이미지 설정
         window.addEventListener('load', function() {
-            const seasonalImages = getSeasonalImages();
+            const schoolImages = getSchoolImages();
             const imgElement = document.querySelector('.school-img');
-            if (imgElement && seasonalImages.length > 0) {
-                imgElement.src = seasonalImages[0];
+            if (imgElement && schoolImages.length > 0) {
+                imgElement.src = schoolImages[0];
             }
         });
         
         // 5분마다 날씨 업데이트 체크
         setInterval(updateWeatherIfNeeded, 5 * 60 * 1000);
         
-        // 10초마다 학교 이미지 슬라이드
-        setInterval(updateSchoolImage, 10 * 1000);
+        // 30초마다 학교 이미지 슬라이드
+        setInterval(updateSchoolImage, 30 * 1000);
         
         // 페이지가 포커스를 받았을 때 업데이트 체크
         window.addEventListener('focus', function() {
@@ -597,7 +599,7 @@ def generate_html_base(title, items, school_name, item_type):
                     { "".join(f"<tr><td>{item['title']}</td><td>{item['date']}</td></tr>" for item in items) }
                 </table>
             </div>
-            <img class="school-img" src="images/율곡중학교.jpg" alt="학교 전경">
+            <img class="school-img" src="images/율곡고.png" alt="학교 전경">
         </div>
         <script>{js_code}</script>
     </body>
@@ -614,9 +616,9 @@ def generate_letter_html(letters, school_name):
 def main():
     # 학교 정보
     school_info = {
-        "name": "율곡중학교",
-        "notice_url": "http://yulgok-m.goepj.kr/yulgok-m/na/ntt/selectRssFeed.do?mi=10151&bbsId=6774",
-        "letter_url": "https://yulgok-m.goepj.kr/yulgok-m/na/ntt/selectRssFeed.do?mi=10153&bbsId=6776"  # 가정통신문 RSS 피드
+        "name": "율곡고등학교",
+        "notice_url": "http://yulgok-h.goepj.kr/yulgok-h/na/ntt/selectRssFeed.do?mi=3812&bbsId=3050",
+        "letter_url": "http://yulgok-h.goepj.kr/yulgok-h/na/ntt/selectRssFeed.do?mi=3813&bbsId=3051"
     }
     
     # 공지사항 크롤링

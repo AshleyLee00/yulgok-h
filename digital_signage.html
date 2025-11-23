@@ -3,7 +3,7 @@
     <html lang="ko">
     <head>
         <meta charset="UTF-8">
-        <title>율곡중학교 공지사항</title>
+        <title>율곡고등학교 공지사항</title>
         <style>
         @font-face {
             font-family: 'SeoulAlrim';
@@ -13,7 +13,7 @@
         }
 
         body {
-            background: #008b8b;
+            background: #007a9f;
             font-family: 'SeoulAlrim', sans-serif;
             margin: 0; 
             padding: 0;
@@ -26,7 +26,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: linear-gradient(90deg, #008b8b, #006666);
+            background: linear-gradient(90deg, #007a9f, #006666);
             padding: 30px 90px;
             box-shadow: 0 8px 32px rgba(0, 139, 139, 0.18);
             flex-shrink: 0;
@@ -247,16 +247,16 @@
             <div class="header-right">
                 <div class="weather">날씨 정보를 불러오는 중...</div>
                 <div class="date-time" id="date-time"></div>
-                <div class="school-name">율곡중학교</div>
+                <div class="school-name">율곡고등학교</div>
             </div>
         </header>
         <div class="main-content">
             <div class="content-box">
                 <table class="content-list">
-                    <tr><td>2026학년도 중학교입학 체육특기자 선발 계획 안내 </td><td>2025-09-25</td></tr><tr><td>2025학년도 2학기 임시시간표 안내</td><td>2025-08-14</td></tr><tr><td>2026학년도 파주시 중학교 학교군(구) 행정예고 및 안내</td><td>2025-06-23</td></tr><tr><td>2025학년도 제1회 개방 이사(감사) 추천위원회 개최 공고</td><td>2025-04-04</td></tr><tr><td>재활용품 분리 배출 가이드라인</td><td>2025-03-27</td></tr><tr><td>2025학년도 교육활동보호 예방교육 운영 계획</td><td>2025-03-20</td></tr><tr><td>「경기도 어린이 ㆍ 청소년 교통비 지원사업 」 홍보 </td><td>2025-03-14</td></tr>
+                    <tr><td>2025학년도 율곡고등학교 출결 양식</td><td>2025-11-10</td></tr><tr><td>11월 월중 행사표</td><td>2025-10-31</td></tr><tr><td>2026학년도 음악/연기, 미술 입학 관련 안내</td><td>2025-10-30</td></tr><tr><td>2026학년도 신입생을 위한 율곡고등학교 입학설명회</td><td>2025-10-23</td></tr><tr><td>2026학년도 대학수학능력시험 부정행위 예방 안내</td><td>2025-10-23</td></tr><tr><td>10월 월중 행사표</td><td>2025-10-13</td></tr><tr><td>2025학년도 2차 도서 구입 예정 목록</td><td>2025-10-13</td></tr>
                 </table>
             </div>
-            <img class="school-img" src="images/율곡중학교.jpg" alt="학교 전경">
+            <img class="school-img" src="images/율곡고.png" alt="학교 전경">
         </div>
         <script>
         // 날씨 캐시 설정
@@ -481,9 +481,9 @@
         }
 
         async function fetchWeather() {
-            const apiKey = '';
-            const lat = 35.9568;
-            const lon = 126.9689;
+            const apiKey = 'your_openweather_api_key_here';
+            const lat = 37.7594;
+            const lon = 126.7729;
             const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`;
             
             try {
@@ -512,33 +512,35 @@
             }
         }
 
-        // 계절별 이미지 슬라이드 기능
-        function getSeasonalImages() {
-            // 율곡중학교 이미지 경로
+        // 학교 이미지 슬라이드 기능
+        function getSchoolImages() {
+            // 율곡고등학교 이미지 경로
             return [
-                'images/율곡중학교.jpg'
+                'images/율곡고.png',
+                'images/율곡고2.jpg',
+                'images/율곡고-전경.png'
             ];
         }
 
         let currentImageIndex = 0;
-        let seasonalImages = [];
+        let schoolImages = [];
 
         function updateSchoolImage() {
             const imgElement = document.querySelector('.school-img');
             if (!imgElement) return;
 
-            // 현재 계절의 이미지 목록 가져오기
-            seasonalImages = getSeasonalImages();
+            // 학교 이미지 목록 가져오기
+            schoolImages = getSchoolImages();
             
             // 페이드 아웃 효과
             imgElement.classList.add('fade-out');
             
             setTimeout(() => {
                 // 이미지 변경
-                imgElement.src = seasonalImages[currentImageIndex];
+                imgElement.src = schoolImages[currentImageIndex];
                 
                 // 다음 이미지 인덱스로 이동
-                currentImageIndex = (currentImageIndex + 1) % seasonalImages.length;
+                currentImageIndex = (currentImageIndex + 1) % schoolImages.length;
                 
                 // 페이드 인 효과
                 imgElement.classList.remove('fade-out');
@@ -550,20 +552,20 @@
         updateDateTime();
         loadInitialWeather();
         
-        // 페이지 로드 시 현재 계절에 맞는 초기 이미지 설정
+        // 페이지 로드 시 초기 이미지 설정
         window.addEventListener('load', function() {
-            const seasonalImages = getSeasonalImages();
+            const schoolImages = getSchoolImages();
             const imgElement = document.querySelector('.school-img');
-            if (imgElement && seasonalImages.length > 0) {
-                imgElement.src = seasonalImages[0];
+            if (imgElement && schoolImages.length > 0) {
+                imgElement.src = schoolImages[0];
             }
         });
         
         // 5분마다 날씨 업데이트 체크
         setInterval(updateWeatherIfNeeded, 5 * 60 * 1000);
         
-        // 10초마다 학교 이미지 슬라이드
-        setInterval(updateSchoolImage, 10 * 1000);
+        // 30초마다 학교 이미지 슬라이드
+        setInterval(updateSchoolImage, 30 * 1000);
         
         // 페이지가 포커스를 받았을 때 업데이트 체크
         window.addEventListener('focus', function() {
