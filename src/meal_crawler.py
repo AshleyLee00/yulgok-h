@@ -64,7 +64,7 @@ def generate_meal_html(meals, school_name):
             justify-content: space-between;
             align-items: center;
             background: linear-gradient(90deg, #007a9f, #005f7d);
-            padding: 30px 90px;
+            padding: 30px 50px;
             box-shadow: 0 8px 32px rgba(0, 122, 159, 0.18);
             flex-shrink: 0;
         }
@@ -76,7 +76,7 @@ def generate_meal_html(meals, school_name):
         }
 
         .header-main-title {
-            font-size: 5.8rem;
+            font-size: 5.2rem;
             font-weight: 900; 
             color: #FFFFFF;
             letter-spacing: -2px;
@@ -92,7 +92,7 @@ def generate_meal_html(meals, school_name):
 
         .page-header .weather, 
         .page-header .date-time {
-            font-size: 2.2rem;
+            font-size: 2rem;
             color: #FFFFFF;
             display: flex;
             align-items: center;
@@ -103,7 +103,7 @@ def generate_meal_html(meals, school_name):
         .page-header .date-time {
             line-height: 1.3;
             text-align: right;
-            font-size: 1.8rem;
+            font-size: 1.6rem;
         }
 
         .page-header .weather {
@@ -126,11 +126,11 @@ def generate_meal_html(meals, school_name):
         }
 
         .page-header .weather-temp {
-            font-size: 2.2rem;
+            font-size: 1.8rem;
         }
 
         .page-header .school-name {
-            font-size: 2.2rem;
+            font-size: 1.8rem;
             color: #FFFFFF;
             font-weight: 700;
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
@@ -149,10 +149,10 @@ def generate_meal_html(meals, school_name):
                 gap: 40px;
             }
             .header-main-title {
-                font-size: 5rem;
+                font-size: 4.5rem;
             }
             .page-header .school-name {
-                font-size: 2.2rem;
+                font-size: 2rem;
             }
         }
 
@@ -161,14 +161,14 @@ def generate_meal_html(meals, school_name):
                 padding: 20px;
             }
             .header-main-title {
-                font-size: 4rem;
+                font-size: 3.6rem;
             }
             .header-left, .header-right {
                 flex-direction: column;
                 gap: 30px;
             }
             .page-header .school-name {
-                font-size: 2rem;
+                font-size: 1.8rem;
             }
         }
 
@@ -212,15 +212,15 @@ def generate_meal_html(meals, school_name):
                 width: 100%;
             }
             .meal-date {
-                font-size: 1.8rem;
+                font-size: 1.6rem;
                 padding: 12px;
             }
             .meal-menu {
-                font-size: 1.6rem;
+                font-size: 1.4rem;
                 line-height: 1.3;
             }
             .meal-menu span {
-                margin-bottom: 6px;
+                margin-bottom: 3px;
             }
             .allergen {
                 font-size: 1.4rem;
@@ -228,9 +228,9 @@ def generate_meal_html(meals, school_name):
                 padding-top: 10px;
             }
             .notice-text {
-                font-size: 1.5rem;
-                margin: 15px auto;
-                padding: 15px;
+                font-size: 1.3rem;
+                margin: 10px auto;
+                padding: 10px;
                 width: 98%;
             }
         }
@@ -512,7 +512,7 @@ def generate_meal_html(meals, school_name):
             background: #E0F7F7;
             border-radius: 15px 15px 0 0;
             padding: 12px;
-            font-size: 2rem;
+            font-size: 1.8rem;
             font-weight: 900;
             color: #222;
             text-align: center;
@@ -531,7 +531,7 @@ def generate_meal_html(meals, school_name):
         }
 
         .meal-menu {
-            font-size: 2rem;
+            font-size: 1.8rem;
             line-height: 1.4;
             color: #333;
             white-space: pre-line;
@@ -546,14 +546,14 @@ def generate_meal_html(meals, school_name):
         }
 
         .calorie-info {
-            font-size: 1.8rem;
+            font-size: 1.6rem;
             color: #0a7fa3;
             margin-top: 10px;
             font-weight: 600;
         }
 
         .allergen {
-            font-size: 1.6rem;
+            font-size: 1.4rem;
             color: #666;
             margin-top: 12px;
             font-weight: 500;
@@ -573,18 +573,18 @@ def generate_meal_html(meals, school_name):
                 min-width: 280px;
             }
             .meal-date {
-                font-size: 2.2rem;
+                font-size: 2rem;
                 padding: 10px;
             }
             .meal-menu {
-                font-size: 2.2rem;
+                font-size: 2rem;
                 line-height: 1.3;
             }
             .meal-menu span {
                 margin-bottom: 8px;
             }
             .allergen {
-                font-size: 1.8rem;
+                font-size: 1.6rem;
                 margin-top: 10px;
                 padding-top: 10px;
             }
@@ -604,14 +604,14 @@ def generate_meal_html(meals, school_name):
                 width: 100%;
             }
             .meal-menu {
-                font-size: 1.8rem;
+                font-size: 1.6rem;
                 line-height: 1.3;
             }
             .meal-menu span {
                 margin-bottom: 6px;
             }
             .allergen {
-                font-size: 1.5rem;
+                font-size: 1.4rem;
                 margin-top: 10px;
                 padding-top: 10px;
             }
@@ -622,7 +622,7 @@ def generate_meal_html(meals, school_name):
         .notice-text {
             text-align: center;
             color: #666;
-            font-size: 1.6rem;
+            font-size: 1.4rem;
             margin: 15px auto;
             line-height: 1.4;
             max-width: 2000px;
@@ -932,33 +932,33 @@ def generate_meal_html(meals, school_name):
                 }
                 
                 .meal-menu {
-                    font-size: calc(2rem * var(--dynamic-font-scale)) !important;
+                    font-size: calc(1.8rem * var(--dynamic-font-scale)) !important;
                 }
                 
                 .meal-date {
-                    font-size: calc(2rem * var(--dynamic-font-scale)) !important;
+                    font-size: calc(1.8rem * var(--dynamic-font-scale)) !important;
                 }
                 
                 .allergen {
-                    font-size: calc(1.6rem * var(--dynamic-font-scale)) !important;
+                    font-size: calc(1.4rem * var(--dynamic-font-scale)) !important;
                 }
                 
                 .notice-text {
-                    font-size: calc(1.6rem * var(--dynamic-font-scale)) !important;
+                    font-size: calc(1.4rem * var(--dynamic-font-scale)) !important;
                 }
                 
                 .header-main-title {
-                    font-size: calc(5.8rem * var(--dynamic-font-scale)) !important;
+                    font-size: calc(5.2rem * var(--dynamic-font-scale)) !important;
                 }
                 
                 .page-header .weather, 
                 .page-header .date-time,
                 .page-header .school-name {
-                    font-size: calc(2.2rem * var(--dynamic-font-scale)) !important;
+                    font-size: calc(2rem * var(--dynamic-font-scale)) !important;
                 }
                 
                 .page-header .weather-temp {
-                    font-size: calc(2.2rem * var(--dynamic-font-scale)) !important;
+                    font-size: calc(1.8rem * var(--dynamic-font-scale)) !important;
                 }
             `;
             document.head.appendChild(style);
