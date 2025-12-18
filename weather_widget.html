@@ -826,7 +826,14 @@
             
             const res = await fetch(`${url}?${queryParams}`);
             
-            // 응답 상태 확인
+            // 응답 상태 확인 - 429 오류 특별 처리
+            if (res.status === 429) {
+                console.warn('API 요청 한도 초과 (429 오류). 2시간 동안 재시도하지 않습니다.');
+                // 429 오류 발생 시간 저장
+                localStorage.setItem(AIR_QUALITY_RATE_LIMIT_KEY, Date.now().toString());
+                throw new Error('API 요청 한도 초과 (429)');
+            }
+            
             if (!res.ok) {
                 throw new Error(`HTTP error! status: ${res.status}`);
             }
@@ -896,16 +903,27 @@
         } catch (error) {
             console.error('대기질 정보 가져오기 실패:', error);
             
-            // API 오류인 경우 모의 데이터 사용
-            if (error.message.includes('API 요청 한도 초과') || 
+            // 429 오류 또는 API 오류인 경우 모의 데이터 사용
+            if (error.message.includes('429') || 
+                error.message.includes('API 요청 한도 초과') || 
                 error.message.includes('서비스 오류') || 
                 error.message.includes('API 키 인증 실패')) {
                 console.log('API 오류로 인해 모의 데이터를 사용합니다.');
                 const mockData = generateMockAirQualityData();
                 saveAirQualityDataToCache(mockData);
+                
+                // 429 오류인 경우 캐시를 더 오래 유지하도록 타임스탬프 조정
+                if (error.message.includes('429')) {
+                    // 캐시를 2시간 더 유지하도록 설정
+                    const extendedTimestamp = Date.now() - (AIR_QUALITY_UPDATE_INTERVAL - AIR_QUALITY_RATE_LIMIT_INTERVAL);
+                    localStorage.setItem(AIR_QUALITY_TIMESTAMP_KEY, extendedTimestamp.toString());
+                }
             } else {
-                // 기타 오류인 경우 데이터 없음 표시
-                setNoDataDisplay();
+                // 기타 오류인 경우 캐시된 데이터가 있으면 사용, 없으면 데이터 없음 표시
+                const cachedData = getCachedAirQualityData();
+                if (!cachedData) {
+                    setNoDataDisplay();
+                }
             }
         }
     }
@@ -913,11 +931,31 @@
     // 모의 대기질 데이터 생성 (API 오류 시 사용)
     function generateMockAirQualityData() {
         const now = new Date();
+        // 캐시된 데이터가 있으면 그것을 기반으로 약간의 변동만 주기
+        let pm10Value = Math.floor(Math.random() * 20) + 5;  // 5-25 범위 (좋음)
+        let pm25Value = Math.floor(Math.random() * 10) + 2;  // 2-12 범위 (좋음)
+        
+        try {
+            const cachedData = localStorage.getItem(AIR_QUALITY_CACHE_KEY);
+            if (cachedData) {
+                const cached = JSON.parse(cachedData);
+                // 캐시된 값이 있으면 그것을 기반으로 약간의 변동만 주기
+                if (cached.pm10Value && !isNaN(cached.pm10Value)) {
+                    pm10Value = Math.max(5, Math.min(80, parseInt(cached.pm10Value) + Math.floor(Math.random() * 6 - 3)));
+                }
+                if (cached.pm25Value && !isNaN(cached.pm25Value)) {
+                    pm25Value = Math.max(2, Math.min(35, parseInt(cached.pm25Value) + Math.floor(Math.random() * 4 - 2)));
+                }
+            }
+        } catch (e) {
+            // 캐시 읽기 실패 시 기본값 사용
+        }
+        
         const mockData = {
             stationName: '파주읍',
             dataTime: now.toLocaleString('ko-KR') + ' (모의 데이터)',
-            pm10Value: Math.floor(Math.random() * 20) + 5,  // 5-25 범위 (좋음)
-            pm25Value: Math.floor(Math.random() * 10) + 2   // 2-12 범위 (좋음)
+            pm10Value: pm10Value,
+            pm25Value: pm25Value
         };
         
         // 데이터를 화면에 표시
@@ -944,6 +982,8 @@
     const AIR_QUALITY_CACHE_KEY = 'airQualityData';
     const AIR_QUALITY_TIMESTAMP_KEY = 'airQualityTimestamp';
     const AIR_QUALITY_UPDATE_INTERVAL = 60 * 60 * 1000; // 1시간 (밀리초) - API 호출 제한을 위해 길게 설정
+    const AIR_QUALITY_RATE_LIMIT_KEY = 'airQualityRateLimit'; // 429 오류 발생 시 재시도 제한 시간
+    const AIR_QUALITY_RATE_LIMIT_INTERVAL = 2 * 60 * 60 * 1000; // 429 오류 발생 시 2시간 대기
     
     const WEATHER_CACHE_KEY = 'weatherData';
     const WEATHER_TIMESTAMP_KEY = 'weatherTimestamp';
@@ -952,6 +992,29 @@
     // API 호출 중복 방지를 위한 플래그
     let isAirQualityLoading = false;
     let isWeatherLoading = false;
+
+    // 429 오류로 인한 재시도 제한 확인
+    function isRateLimited() {
+        try {
+            const rateLimitTime = localStorage.getItem(AIR_QUALITY_RATE_LIMIT_KEY);
+            if (rateLimitTime) {
+                const lastRateLimit = parseInt(rateLimitTime);
+                const now = Date.now();
+                // 2시간이 지나지 않았다면 재시도 제한
+                if (now - lastRateLimit < AIR_QUALITY_RATE_LIMIT_INTERVAL) {
+                    const remainingMinutes = Math.ceil((AIR_QUALITY_RATE_LIMIT_INTERVAL - (now - lastRateLimit)) / (60 * 1000));
+                    console.log(`API 요청 한도 초과로 인해 ${remainingMinutes}분 후에 재시도합니다.`);
+                    return true;
+                } else {
+                    // 제한 시간이 지났으면 제한 정보 제거
+                    localStorage.removeItem(AIR_QUALITY_RATE_LIMIT_KEY);
+                }
+            }
+        } catch (error) {
+            console.error('재시도 제한 확인 실패:', error);
+        }
+        return false;
+    }
 
     // 캐시에서 데이터 가져오기
     function getCachedAirQualityData() {
@@ -964,13 +1027,13 @@
                 const lastUpdate = parseInt(timestamp);
                 const now = Date.now();
                 
-            // 캐시 유효 기간 내라면 캐시된 데이터 사용
-            if (now - lastUpdate < AIR_QUALITY_UPDATE_INTERVAL) {
-                console.log('캐시된 대기질 데이터 사용 중...');
-                // 캐시된 데이터를 화면에 표시
-                displayAirQualityData(data);
-                return data;
-            }
+                // 캐시 유효 기간 내라면 캐시된 데이터 사용
+                if (now - lastUpdate < AIR_QUALITY_UPDATE_INTERVAL) {
+                    console.log('캐시된 대기질 데이터 사용 중...');
+                    // 캐시된 데이터를 화면에 표시
+                    displayAirQualityData(data);
+                    return data;
+                }
             }
         } catch (error) {
             console.error('캐시 데이터 읽기 실패:', error);
@@ -994,6 +1057,18 @@
         // 이미 API 호출 중이면 중복 호출 방지
         if (isAirQualityLoading) {
             console.log('대기질 API 호출이 이미 진행 중입니다.');
+            return;
+        }
+        
+        // 429 오류로 인한 재시도 제한 확인
+        if (isRateLimited()) {
+            // 캐시된 데이터가 있으면 사용
+            const cachedData = getCachedAirQualityData();
+            if (!cachedData) {
+                // 캐시도 없으면 모의 데이터 생성
+                const mockData = generateMockAirQualityData();
+                saveAirQualityDataToCache(mockData);
+            }
             return;
         }
         
@@ -1144,6 +1219,7 @@
         try {
             localStorage.removeItem(AIR_QUALITY_CACHE_KEY);
             localStorage.removeItem(AIR_QUALITY_TIMESTAMP_KEY);
+            localStorage.removeItem(AIR_QUALITY_RATE_LIMIT_KEY);
             localStorage.removeItem(WEATHER_CACHE_KEY);
             localStorage.removeItem(WEATHER_TIMESTAMP_KEY);
             console.log('모든 캐시가 초기화되었습니다.');
