@@ -943,11 +943,15 @@
     // 캐시 키 상수
     const AIR_QUALITY_CACHE_KEY = 'airQualityData';
     const AIR_QUALITY_TIMESTAMP_KEY = 'airQualityTimestamp';
-    const AIR_QUALITY_UPDATE_INTERVAL = 5 * 60 * 1000; // 5분 (밀리초) - 테스트용으로 짧게 설정
+    const AIR_QUALITY_UPDATE_INTERVAL = 60 * 60 * 1000; // 1시간 (밀리초) - API 호출 제한을 위해 길게 설정
     
     const WEATHER_CACHE_KEY = 'weatherData';
     const WEATHER_TIMESTAMP_KEY = 'weatherTimestamp';
-    const WEATHER_UPDATE_INTERVAL = 5 * 60 * 1000; // 5분 (밀리초) - 테스트용으로 짧게 설정
+    const WEATHER_UPDATE_INTERVAL = 30 * 60 * 1000; // 30분 (밀리초)
+    
+    // API 호출 중복 방지를 위한 플래그
+    let isAirQualityLoading = false;
+    let isWeatherLoading = false;
 
     // 캐시에서 데이터 가져오기
     function getCachedAirQualityData() {
@@ -960,11 +964,13 @@
                 const lastUpdate = parseInt(timestamp);
                 const now = Date.now();
                 
-                // 1시간이 지나지 않았다면 캐시된 데이터 사용
-                if (now - lastUpdate < AIR_QUALITY_UPDATE_INTERVAL) {
-                    console.log('캐시된 대기질 데이터 사용 중...');
-                    return data;
-                }
+            // 캐시 유효 기간 내라면 캐시된 데이터 사용
+            if (now - lastUpdate < AIR_QUALITY_UPDATE_INTERVAL) {
+                console.log('캐시된 대기질 데이터 사용 중...');
+                // 캐시된 데이터를 화면에 표시
+                displayAirQualityData(data);
+                return data;
+            }
             }
         } catch (error) {
             console.error('캐시 데이터 읽기 실패:', error);
@@ -983,8 +989,14 @@
         }
     }
 
-    // 대기질 정보 업데이트 함수 (2시간마다)
+    // 대기질 정보 업데이트 함수 (1시간마다)
     async function updateAirQualityIfNeeded() {
+        // 이미 API 호출 중이면 중복 호출 방지
+        if (isAirQualityLoading) {
+            console.log('대기질 API 호출이 이미 진행 중입니다.');
+            return;
+        }
+        
         // 먼저 캐시에서 데이터 확인
         const cachedData = getCachedAirQualityData();
         if (cachedData) {
@@ -994,8 +1006,13 @@
         }
         
         // 캐시에 데이터가 없거나 만료된 경우에만 API 호출
+        isAirQualityLoading = true;
         console.log('대기질 정보 업데이트 중...');
-        await getAirQuality();
+        try {
+            await getAirQuality();
+        } finally {
+            isAirQualityLoading = false;
+        }
     }
 
     // 날씨 캐시에서 데이터 가져오기
@@ -1009,11 +1026,13 @@
                 const lastUpdate = parseInt(timestamp);
                 const now = Date.now();
                 
-                // 1시간이 지나지 않았다면 캐시된 데이터 사용
-                if (now - lastUpdate < WEATHER_UPDATE_INTERVAL) {
-                    console.log('캐시된 날씨 데이터 사용 중...');
-                    return data;
-                }
+            // 캐시 유효 기간 내라면 캐시된 데이터 사용
+            if (now - lastUpdate < WEATHER_UPDATE_INTERVAL) {
+                console.log('캐시된 날씨 데이터 사용 중...');
+                // 캐시된 데이터를 화면에 표시
+                displayWeatherData(data);
+                return data;
+            }
             }
         } catch (error) {
             console.error('날씨 캐시 데이터 읽기 실패:', error);
@@ -1088,8 +1107,14 @@
         }
     }
 
-    // 날씨 정보 업데이트 함수 (1시간마다)
+    // 날씨 정보 업데이트 함수 (30분마다)
     async function updateWeatherIfNeeded() {
+        // 이미 API 호출 중이면 중복 호출 방지
+        if (isWeatherLoading) {
+            console.log('날씨 API 호출이 이미 진행 중입니다.');
+            return;
+        }
+        
         // 먼저 캐시에서 데이터 확인
         const cachedData = getCachedWeatherData();
         if (cachedData) {
@@ -1099,13 +1124,18 @@
         }
         
         // 캐시에 데이터가 없거나 만료된 경우에만 API 호출
+        isWeatherLoading = true;
         console.log('날씨 정보 업데이트 중...');
-        const currentData = await getCurrentWeather();
-        const forecastData = await getForecastWeather();
-        
-        // 성공적으로 데이터를 가져왔다면 캐시에 저장
-        if (currentData && forecastData) {
-            saveWeatherDataToCache(currentData, forecastData);
+        try {
+            const currentData = await getCurrentWeather();
+            const forecastData = await getForecastWeather();
+            
+            // 성공적으로 데이터를 가져왔다면 캐시에 저장
+            if (currentData && forecastData) {
+                saveWeatherDataToCache(currentData, forecastData);
+            }
+        } finally {
+            isWeatherLoading = false;
         }
     }
 
@@ -1124,8 +1154,7 @@
 
     // 초기 데이터 로드 함수 (캐시 확인 후 표시 또는 API 호출)
     async function loadInitialData() {
-        // 테스트를 위해 캐시 강제 초기화 (필요시 주석 처리)
-        clearAllCache();
+        // 캐시 강제 초기화 제거 - API 호출 제한을 위해 캐시 활용
         
         // 날씨 데이터 로드
         const cachedWeatherData = getCachedWeatherData();
@@ -1133,11 +1162,19 @@
             console.log('캐시된 날씨 데이터로 초기 로드 중...');
             displayWeatherData(cachedWeatherData);
         } else {
-            console.log('날씨 데이터 초기 로드 중...');
-            const currentData = await getCurrentWeather();
-            const forecastData = await getForecastWeather();
-            if (currentData && forecastData) {
-                saveWeatherDataToCache(currentData, forecastData);
+            // 캐시에 데이터가 없을 때만 API 호출
+            if (!isWeatherLoading) {
+                isWeatherLoading = true;
+                console.log('날씨 데이터 초기 로드 중...');
+                try {
+                    const currentData = await getCurrentWeather();
+                    const forecastData = await getForecastWeather();
+                    if (currentData && forecastData) {
+                        saveWeatherDataToCache(currentData, forecastData);
+                    }
+                } finally {
+                    isWeatherLoading = false;
+                }
             }
         }
         
@@ -1147,8 +1184,16 @@
             console.log('캐시된 대기질 데이터로 초기 로드 중...');
             displayAirQualityData(cachedAirQualityData);
         } else {
-            console.log('대기질 데이터 초기 로드 중...');
-            await getAirQuality();
+            // 캐시에 데이터가 없을 때만 API 호출
+            if (!isAirQualityLoading) {
+                isAirQualityLoading = true;
+                console.log('대기질 데이터 초기 로드 중...');
+                try {
+                    await getAirQuality();
+                } finally {
+                    isAirQualityLoading = false;
+                }
+            }
         }
     }
 
@@ -1161,18 +1206,20 @@
         loadInitialData();
         
         // 주기적 업데이트 설정
-        setInterval(updateWeatherIfNeeded, 5 * 60 * 1000); // 5분마다 체크
-        setInterval(updateAirQualityIfNeeded, 5 * 60 * 1000); // 5분마다 체크
+        setInterval(updateWeatherIfNeeded, 30 * 60 * 1000); // 30분마다 체크
+        setInterval(updateAirQualityIfNeeded, 60 * 60 * 1000); // 1시간마다 체크 (API 제한 고려)
         
-        // 페이지가 포커스를 받았을 때 업데이트 체크
+        // 페이지가 포커스를 받았을 때 업데이트 체크 (캐시 확인만 수행)
         window.addEventListener('focus', function() {
+            // 포커스 이벤트에서는 캐시 확인만 하고, 만료된 경우에만 업데이트
             updateWeatherIfNeeded();
             updateAirQualityIfNeeded();
         });
         
-        // 페이지가 보이게 될 때 업데이트 체크 (탭 전환 시)
+        // 페이지가 보이게 될 때 업데이트 체크 (탭 전환 시, 캐시 확인만 수행)
         document.addEventListener('visibilitychange', function() {
             if (!document.hidden) {
+                // visibilitychange 이벤트에서는 캐시 확인만 하고, 만료된 경우에만 업데이트
                 updateWeatherIfNeeded();
                 updateAirQualityIfNeeded();
             }
