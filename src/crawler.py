@@ -617,8 +617,8 @@ def main():
     # 학교 정보
     school_info = {
         "name": "율곡고등학교",
-        "notice_url": "http://yulgok-h.goepj.kr/yulgok-h/na/ntt/selectRssFeed.do?mi=3812&bbsId=3050",
-        "letter_url": "http://yulgok-h.goepj.kr/yulgok-h/na/ntt/selectRssFeed.do?mi=3813&bbsId=3051"
+        "notice_url": "https://yulgok-h.goepj.kr/yulgok-h/na/ntt/selectNttList.do?mi=3812&bbsId=3050",
+        "letter_url": "https://yulgok-h.goepj.kr/yulgok-h/na/ntt/selectNttList.do?mi=3813&bbsId=3051"
     }
     
     # 공지사항 크롤링
