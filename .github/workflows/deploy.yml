@@ -37,6 +37,15 @@ jobs:
         cd src
         python crawler.py
       continue-on-error: true
+      
+    - name: Check crawler logs
+      if: always()
+      run: |
+        echo "=== 공지사항 크롤러 로그 ==="
+        cat ../data/notice_crawler.log 2>/dev/null || echo "로그 파일이 없습니다."
+        echo ""
+        echo "=== 가정통신문 크롤러 로그 ==="
+        cat ../data/family_letter_crawler.log 2>/dev/null || echo "로그 파일이 없습니다."
         
     - name: Configure Git
       run: |

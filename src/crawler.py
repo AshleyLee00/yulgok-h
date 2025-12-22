@@ -630,6 +630,8 @@ def main():
     if 'notices' in notices_result and notices_result['notices']:
         notices_result['notices'] = notices_result['notices'][:7]
     print(f"공지사항 크롤링 완료: {len(notices_result.get('notices', []))}개")
+    if 'meta' in notices_result and 'error' in notices_result['meta']:
+        print(f"공지사항 크롤링 에러: {notices_result['meta']['error']}")
     
     # 가정통신문 크롤링
     print(f"{school_info['name']} 가정통신문 크롤링 시작...")
@@ -640,6 +642,8 @@ def main():
     if 'letters' in letters_result and letters_result['letters']:
         letters_result['letters'] = letters_result['letters'][:7]
     print(f"가정통신문 크롤링 완료: {len(letters_result.get('letters', []))}개")
+    if 'meta' in letters_result and 'error' in letters_result['meta']:
+        print(f"가정통신문 크롤링 에러: {letters_result['meta']['error']}")
     
     # HTML 파일 생성
     notice_html = generate_notice_html(notices_result.get('notices', []), school_info['name'])

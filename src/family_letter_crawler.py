@@ -20,14 +20,20 @@ log_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data')
 os.makedirs(log_dir, exist_ok=True)
 log_file = os.path.join(log_dir, 'family_letter_crawler.log')
 
-# 로깅 설정
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    filename=log_file,
-    filemode='w',
-    encoding='utf-8'
-)
+# 로깅 설정 (파일 + 콘솔)
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
+# 파일 핸들러
+file_handler = logging.FileHandler(log_file, mode='w', encoding='utf-8')
+file_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+
+# 콘솔 핸들러
+console_handler = logging.StreamHandler()
+console_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+
+logger.addHandler(file_handler)
+logger.addHandler(console_handler)
 
 def crawl_school_letters(url, site_name=None):
     """
@@ -56,10 +62,14 @@ def crawl_school_letters(url, site_name=None):
     }
     
     try:
-        response = requests.get(url, headers=headers, timeout=10)
+        response = requests.get(url, headers=headers, timeout=30)
         response.raise_for_status()
+        logging.info(f"RSS 피드 응답 상태 코드: {response.status_code}")
+        logging.info(f"RSS 피드 응답 길이: {len(response.text)} bytes")
+        logging.info(f"RSS 피드 응답 시작 부분 (처음 500자): {response.text[:500]}")
     except requests.RequestException as e:
         logging.error(f"요청 중 오류 발생: {e}")
+        print(f"ERROR: 요청 중 오류 발생: {e}")
         return {
             "letters": [],
             "meta": {
@@ -74,16 +84,27 @@ def crawl_school_letters(url, site_name=None):
     # RSS XML 파싱
     try:
         root = ET.fromstring(response.text)
+        logging.info(f"XML 루트 태그: {root.tag}")
         
         # item 요소들 찾기 (여러 방법 시도)
         items = root.findall('.//item')
+        logging.info(f"'.//item' 검색 결과: {len(items)}개")
         if not items:
             # 다른 태그명으로 시도
             items = root.findall('.//entry')  # Atom 형식
+            logging.info(f"'.//entry' 검색 결과: {len(items)}개")
         if not items:
             # 네임스페이스와 함께 시도
             namespaces = {'rss': 'http://purl.org/rss/1.0/'}
             items = root.findall('.//rss:item', namespaces)
+            logging.info(f"'.//rss:item' 검색 결과: {len(items)}개")
+        
+        if not items:
+            # 모든 요소를 찾아서 디버깅
+            all_elements = root.findall('.//')
+            logging.warning(f"item을 찾을 수 없습니다. 전체 요소 수: {len(all_elements)}")
+            logging.warning(f"루트의 직접 자식 요소들: {[child.tag for child in root]}")
+            print(f"WARNING: RSS 피드에서 item을 찾을 수 없습니다. 응답 내용 확인 필요.")
         
         letters = []
         
