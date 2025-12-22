@@ -596,7 +596,7 @@ def generate_html_base(title, items, school_name, item_type):
         <div class="main-content">
             <div class="content-box">
                 <table class="content-list">
-                    { "".join(f"<tr><td>{item['title']}</td><td>{item['date']}</td></tr>" for item in items) }
+                    { "".join(f"<tr><td>{item.get('title', '')}</td><td>{item.get('date', '')}</td></tr>" for item in items) }
                 </table>
             </div>
             <img class="school-img" src="images/율곡고.png" alt="학교 전경">
@@ -646,8 +646,24 @@ def main():
         print(f"가정통신문 크롤링 에러: {letters_result['meta']['error']}")
     
     # HTML 파일 생성
-    notice_html = generate_notice_html(notices_result.get('notices', []), school_info['name'])
-    letter_html = generate_letter_html(letters_result.get('letters', []), school_info['name'])
+    notices = notices_result.get('notices', [])
+    letters = letters_result.get('letters', [])
+    
+    # 디버깅: 날짜 정보 확인
+    if notices:
+        print(f"\n공지사항 첫 번째 항목 확인:")
+        print(f"  제목: {notices[0].get('title', 'N/A')}")
+        print(f"  날짜: {notices[0].get('date', 'N/A')}")
+        print(f"  전체 데이터: {notices[0]}")
+    
+    if letters:
+        print(f"\n가정통신문 첫 번째 항목 확인:")
+        print(f"  제목: {letters[0].get('title', 'N/A')}")
+        print(f"  날짜: {letters[0].get('date', 'N/A')}")
+        print(f"  전체 데이터: {letters[0]}")
+    
+    notice_html = generate_notice_html(notices, school_info['name'])
+    letter_html = generate_letter_html(letters, school_info['name'])
     
     # HTML 파일 저장
     parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

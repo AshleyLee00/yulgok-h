@@ -172,21 +172,46 @@ def crawl_school_notices(url, site_name=None):
                         author = cell_text
                         break
                 
-                # 날짜 추출
+                # 날짜 추출 (일반적으로 4번째 셀, 인덱스 3)
                 date_text = ""
-                for cell in cells:
-                    cell_text = cell.get_text(strip=True)
-                    # YYYY.MM.DD 형식 찾기
-                    if re.match(r'\d{4}\.\d{2}\.\d{2}', cell_text):
-                        date_text = cell_text
-                        break
+                # 먼저 특정 인덱스에서 찾기 시도
+                if len(cells) > 3:
+                    date_cell = cells[3]
+                    cell_text = date_cell.get_text(strip=True)
+                    # YYYY.MM.DD 형식 찾기 (셀에 다른 텍스트가 있을 수 있음)
+                    date_match = re.search(r'(\d{4}\.\d{2}\.\d{2})', cell_text)
+                    if date_match:
+                        date_text = date_match.group(1)
                 
-                # 조회수 추출 (있는 경우)
+                # 인덱스에서 못 찾았으면 모든 셀에서 찾기
+                if not date_text:
+                    for idx, cell in enumerate(cells):
+                        cell_text = cell.get_text(strip=True)
+                        # YYYY.MM.DD 형식 찾기 (셀에 다른 텍스트가 있을 수 있음)
+                        date_match = re.search(r'(\d{4}\.\d{2}\.\d{2})', cell_text)
+                        if date_match:
+                            date_text = date_match.group(1)
+                            logging.debug(f"날짜를 인덱스 {idx}에서 찾았습니다: {date_text}")
+                            break
+                
+                if not date_text:
+                    logging.warning(f"날짜를 찾을 수 없습니다. 셀 내용: {[cell.get_text(strip=True) for cell in cells]}")
+                
+                # 조회수 추출 (있는 경우, 보통 마지막 셀)
                 views = "0"
-                for cell in cells:
-                    cell_text = cell.get_text(strip=True)
-                    if cell_text.isdigit() and int(cell_text) > 0 and int(cell_text) < 100000:
-                        views = cell_text
+                if len(cells) > 4:
+                    # 마지막 셀이 조회수일 가능성이 높음
+                    views_cell = cells[-1]
+                    views_text = views_cell.get_text(strip=True)
+                    if views_text.isdigit() and int(views_text) > 0:
+                        views = views_text
+                else:
+                    # 모든 셀에서 숫자 찾기 (번호 제외)
+                    for idx, cell in enumerate(cells):
+                        cell_text = cell.get_text(strip=True)
+                        # 번호 셀(첫 번째)은 제외하고, 작은 숫자는 조회수일 가능성 낮음
+                        if idx > 0 and cell_text.isdigit() and int(cell_text) > 0 and int(cell_text) < 100000:
+                            views = cell_text
                 
                 # 날짜 형식 정리 (YYYY.MM.DD 형식을 YYYY-MM-DD로 변환)
                 try:
